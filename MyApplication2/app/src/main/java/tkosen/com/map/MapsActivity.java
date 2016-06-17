@@ -1,8 +1,12 @@
 package tkosen.com.map;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -22,6 +26,8 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import tkosen.com.gcm.GcmAction;
+import tkosen.com.gcm.IntentExtras;
 import tkosen.com.gcm.RegistrationIntentService;
 import tkosen.com.map.modal.MapObject;
 import tkosen.com.map.net.CountryAPI;
@@ -32,6 +38,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private CountryAPI countryAPI;
     private Picasso picasso;
+    private ActivityBroadcastReceiver activityBroadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +53,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Intent service = new Intent(this, RegistrationIntentService.class);
         startService(service);
+
+        activityBroadcastReceiver = new ActivityBroadcastReceiver();
     }
 
     @Override
@@ -126,6 +135,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             });
 
             return myContentsView;
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        final IntentFilter filter = new IntentFilter();
+        filter.addAction(GcmAction.GCM_RECEIVED);
+        LocalBroadcastManager.getInstance(this).registerReceiver(activityBroadcastReceiver, filter);
+    }
+
+    private class ActivityBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String alphaCode =intent.getExtras().getString(IntentExtras.GCM);
+            Toast.makeText(MapsActivity.this, alphaCode , Toast.LENGTH_SHORT).show();
+            MapObject selectedMapObject = null;
+            for (MapObject mapObject : mapObjects) {
+                if (mapObject.getAlpha2Code().equalsIgnoreCase(alphaCode))
+                    selectedMapObject = mapObject;
+            }
+
+            LatLng latLng = new LatLng(selectedMapObject.getLatlng().get(0), selectedMapObject.getLatlng().get(1));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,12));
         }
     }
 }

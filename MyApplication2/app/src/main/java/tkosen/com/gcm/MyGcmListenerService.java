@@ -16,10 +16,14 @@
 
 package tkosen.com.gcm;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
+
+import org.json.JSONException;
 
 /**
  * This service listens for messages from GCM, makes them usable for this application and then
@@ -36,7 +40,28 @@ public class MyGcmListenerService extends GcmListenerService {
             return;
         }
 
-        Log.e(TAG, "onMessageReceived: data arrived");
+        try {
+            digestData(data);
+        } catch (JSONException e) {
+            Log.e(TAG, "onMessageReceived: Could not digest data", e);
+        }
+    }
+
+    private void digestData(Bundle data) throws JSONException {
+        final String action = data.getString("action");
+        Log.d(TAG, "Action: " + action);
+        if (action == null) {
+            Log.w(TAG, "onMessageReceived: Action was null, skipping further processing.");
+            return;
+        }
+        Intent broadcastIntent = new Intent(action);
+        switch (action) {
+            case GcmAction.GCM_RECEIVED:
+                final String code = data.getString("alpha2Code");
+                broadcastIntent.putExtra(IntentExtras.NEW_LOCATION, code);
+                break;
+        }
+        LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent);
     }
 
 }
