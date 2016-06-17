@@ -3,6 +3,7 @@ package tkosen.com.map;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,6 +14,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -27,12 +29,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     List<MapObject> mapObjects;
     private GoogleMap mMap;
     private CountryAPI countryAPI;
-
+    private Picasso picasso;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         countryAPI = ServiceGenerator.createService(CountryAPI.class);
+        picasso = Picasso.with(this);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -95,6 +98,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return myContentsView;
 
 
+            ImageView image = ((ImageView) myContentsView.findViewById(R.id.image));
             TextView txt_name = ((TextView) myContentsView.findViewById(R.id.txt_name));
             TextView txt_capital = ((TextView) myContentsView.findViewById(R.id.txt_capital));
             TextView txt_population = ((TextView) myContentsView.findViewById(R.id.txt_population));
@@ -102,6 +106,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             txt_name.setText(selectedMapObject.getName());
             txt_capital.setText(selectedMapObject.getCapital());
             txt_population.setText(String.valueOf(selectedMapObject.getPopulation()));
+
+            picasso.load("http://www.worldatlas.com/webimage/flags/flags_database/Flag_of_Turkey.png").into(image, new com.squareup.picasso.Callback() {
+                @Override
+                public void onSuccess() {
+                    Toast.makeText(MapsActivity.this, "success", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onError() {
+                    Toast.makeText(MapsActivity.this, "fail", Toast.LENGTH_SHORT).show();
+                }
+            });
 
             return myContentsView;
         }
