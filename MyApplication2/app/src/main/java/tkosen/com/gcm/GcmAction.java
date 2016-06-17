@@ -23,5 +23,5 @@ package tkosen.com.gcm;
  */
 public class GcmAction {
 
-    public static final String GCM_RECEIVED= "gcm_received";
+    public static final String NEW_LOCATION_ARRIVED = "new_location_arrived";
 }

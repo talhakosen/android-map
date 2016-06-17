@@ -28,6 +28,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import tkosen.com.gcm.GcmAction;
 import tkosen.com.gcm.IntentExtras;
+import tkosen.com.gcm.MapApplication;
 import tkosen.com.gcm.RegistrationIntentService;
 import tkosen.com.map.modal.MapObject;
 import tkosen.com.map.net.CountryAPI;
@@ -87,7 +88,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-
     class MapInfoAdapter implements GoogleMap.InfoWindowAdapter {
         private final View myContentsView;
 
@@ -141,16 +141,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onResume() {
         super.onResume();
+        ((MapApplication) getApplicationContext()).setActivityVisible(true);
+
+        Toast.makeText(MapsActivity.this, "visible", Toast.LENGTH_SHORT).show();
+
         final IntentFilter filter = new IntentFilter();
-        filter.addAction(GcmAction.GCM_RECEIVED);
+        filter.addAction(GcmAction.NEW_LOCATION_ARRIVED);
         LocalBroadcastManager.getInstance(this).registerReceiver(activityBroadcastReceiver, filter);
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Toast.makeText(MapsActivity.this, "gone", Toast.LENGTH_SHORT).show();
+        ((MapApplication) getApplicationContext()).setActivityVisible(false);
     }
 
     private class ActivityBroadcastReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            String alphaCode =intent.getExtras().getString(IntentExtras.GCM);
+            String alphaCode =intent.getExtras().getString(IntentExtras.NEW_LOCATION);
             Toast.makeText(MapsActivity.this, alphaCode , Toast.LENGTH_SHORT).show();
             MapObject selectedMapObject = null;
             for (MapObject mapObject : mapObjects) {

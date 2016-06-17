@@ -16,14 +16,20 @@
 
 package tkosen.com.gcm;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
 
 import org.json.JSONException;
+
+import tkosen.com.map.MapsActivity;
+import tkosen.com.map.R;
 
 /**
  * This service listens for messages from GCM, makes them usable for this application and then
@@ -40,11 +46,39 @@ public class MyGcmListenerService extends GcmListenerService {
             return;
         }
 
+        if (((MapApplication) getApplicationContext()).isActivityVisible())
+            sendBroadcast(data);
+        else
+            sendNotification();
+    }
+
+    private void sendBroadcast(Bundle data) {
         try {
             digestData(data);
         } catch (JSONException e) {
             Log.e(TAG, "onMessageReceived: Could not digest data", e);
         }
+    }
+
+    private void sendNotification() {
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setContentTitle("My notification")
+                        .setContentText("Hello World!");
+
+        Intent resultIntent = new Intent(this, MapsActivity.class);
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                resultIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        );
+        mBuilder.setContentIntent(resultPendingIntent);
+
+        int mNotificationId = 001;
+        NotificationManager mNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        mNotifyMgr.notify(mNotificationId, mBuilder.build());
     }
 
     private void digestData(Bundle data) throws JSONException {
@@ -56,7 +90,7 @@ public class MyGcmListenerService extends GcmListenerService {
         }
         Intent broadcastIntent = new Intent(action);
         switch (action) {
-            case GcmAction.GCM_RECEIVED:
+            case GcmAction.NEW_LOCATION_ARRIVED:
                 final String code = data.getString("alpha2Code");
                 broadcastIntent.putExtra(IntentExtras.NEW_LOCATION, code);
                 break;
