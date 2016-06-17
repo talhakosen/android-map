@@ -30,6 +30,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private CountryAPI countryAPI;
     private Picasso picasso;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,7 +95,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     selectedMapObject = mapObject;
             }
 
-            if(selectedMapObject== null)
+            if (selectedMapObject == null)
                 return myContentsView;
 
 
@@ -107,7 +108,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             txt_capital.setText(selectedMapObject.getCapital());
             txt_population.setText(String.valueOf(selectedMapObject.getPopulation()));
 
-            picasso.load("http://www.worldatlas.com/webimage/flags/flags_database/Flag_of_Turkey.png").into(image, new com.squareup.picasso.Callback() {
+            picasso.load("http://www.geonames.org/flags/x/" + selectedMapObject.getAlpha2Code().toLowerCase() + ".gif").into(image, new com.squareup.picasso.Callback() {
                 @Override
                 public void onSuccess() {
                     Toast.makeText(MapsActivity.this, "success", Toast.LENGTH_SHORT).show();
