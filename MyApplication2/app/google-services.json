@@ -1,0 +1,35 @@
+{
+  "project_info": {
+    "project_number": "663406800017",
+    "project_id": "united-kiln-134523"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:663406800017:android:a4d8f7a7186a3a37",
+        "android_client_info": {
+          "package_name": "tkosen.com.map"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJUU74oPoIYrJPalwhtJue9BWTgPc8v-U"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
