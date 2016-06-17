@@ -2,6 +2,8 @@ package tkosen.com.map;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -9,6 +11,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.List;
@@ -21,6 +24,7 @@ import tkosen.com.map.net.CountryAPI;
 import tkosen.com.map.net.ServiceGenerator;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+    List<MapObject> mapObjects;
     private GoogleMap mMap;
     private CountryAPI countryAPI;
 
@@ -35,24 +39,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
     }
 
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        mMap.setInfoWindowAdapter(new MapInfoAdapter());
 
         countryAPI.getCountries().enqueue(new Callback<List<MapObject>>() {
             @Override
@@ -61,11 +51,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     return;
 
                 Toast.makeText(MapsActivity.this, String.valueOf(response.body().size()), Toast.LENGTH_SHORT).show();
-
+                mapObjects = response.body();
                 for (MapObject mapObject : response.body()) {
-                    if(mapObject.getLatlng() != null && mapObject.getLatlng().size()>1) {
+                    if (mapObject.getLatlng() != null && mapObject.getLatlng().size() > 1) {
                         LatLng latLng = new LatLng(mapObject.getLatlng().get(0), mapObject.getLatlng().get(1));
-                        mMap.addMarker(new MarkerOptions().position(latLng).title(mapObject.getName()));
+                        mMap.addMarker(new MarkerOptions().position(latLng).title(mapObject.getName())).setSnippet(mapObject.getAlpha2Code());
+                        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+
                     }
                 }
             }
@@ -75,5 +67,43 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Toast.makeText(MapsActivity.this, t.getMessage().toString(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+
+    class MapInfoAdapter implements GoogleMap.InfoWindowAdapter {
+        private final View myContentsView;
+
+        MapInfoAdapter() {
+            myContentsView = getLayoutInflater().inflate(R.layout.custom_info_contents, null);
+        }
+
+        @Override
+        public View getInfoWindow(Marker marker) {
+            return null;
+        }
+
+        @Override
+        public View getInfoContents(Marker marker) {
+            String alphaCode = marker.getSnippet();
+            MapObject selectedMapObject = null;
+            for (MapObject mapObject : mapObjects) {
+                if (mapObject.getAlpha2Code().equalsIgnoreCase(alphaCode))
+                    selectedMapObject = mapObject;
+            }
+
+            if(selectedMapObject== null)
+                return myContentsView;
+
+
+            TextView txt_name = ((TextView) myContentsView.findViewById(R.id.txt_name));
+            TextView txt_capital = ((TextView) myContentsView.findViewById(R.id.txt_capital));
+            TextView txt_population = ((TextView) myContentsView.findViewById(R.id.txt_population));
+
+            txt_name.setText(selectedMapObject.getName());
+            txt_capital.setText(selectedMapObject.getCapital());
+            txt_population.setText(String.valueOf(selectedMapObject.getPopulation()));
+
+            return myContentsView;
+        }
     }
 }
